@@ -1,10 +1,5 @@
 import { FastifyPluginAsyncJsonSchemaToTs } from '@fastify/type-provider-json-schema-to-ts';
-import { GraphQLUser, GraphQLProfile, GraphQLPost, GraphQLMemberType } from './types';
-import {
-  GetGraphQLUserWithDependencies,
-  GetGraphQLUserSubscribedToProfile,
-  GetGraphQLSubscribedToUserPosts
-} from './helpers';
+import { TUser, TProfile, TPost, TMemberType } from './types';
 import { graphqlBodySchema } from './schema';
 
 import { FastifyInstance } from 'fastify';
@@ -73,47 +68,45 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
       },
     },
     async function (request, reply) {
+      const { query, variables } = request.body;
+
       // Fill database with mock data
       if (!isMockDataCreated) {
         await fillDatabaseWithMockData(fastify);
         isMockDataCreated = true;
       }
 
-      const GraphQLUserWithDependencies = await GetGraphQLUserWithDependencies(fastify);
-      const GraphQLUserSubscribedToProfile = await GetGraphQLUserSubscribedToProfile(fastify);
-      const GraphQLSubscribedToUserPosts = await GetGraphQLSubscribedToUserPosts(fastify);
-
       const RootQuery = new GraphQLObjectType({
         name: 'RootQuery',
         fields: {
-          // Get all entities: 2.1
+          // Get all entities
           users: {
-            type: new GraphQLList(GraphQLUser),
+            type: new GraphQLList(TUser),
             resolve: async () => await fastify.db.users.findMany()
           },
 
           profiles: {
-            type: new GraphQLList(GraphQLProfile),
+            type: new GraphQLList(TProfile),
             resolve: async () => await fastify.db.profiles.findMany()
           },
 
           posts: {
-            type: new GraphQLList(GraphQLPost),
+            type: new GraphQLList(TPost),
             resolve: async () => await fastify.db.posts.findMany()
           },
 
           memberTypes: {
-            type: new GraphQLList(GraphQLMemberType),
+            type: new GraphQLList(TMemberType),
             resolve: async () => await fastify.db.memberTypes.findMany()
           },
 
-          // Get a single entity: 2.2
+          // Get a single entity
           user: {
-            type: GraphQLUser,
+            type: TUser,
             args: {
               id: { type: GraphQLID }
             },
-            resolve: async (parent, args) => {
+            resolve: async (_, args) => {
               const id = args.id;
 
               const user = await fastify.db.users.findOne({ key: 'id', equals: id });
@@ -127,11 +120,11 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
           },
 
           profile: {
-            type: GraphQLProfile,
+            type: TProfile,
             args: {
               id: { type: GraphQLID }
             },
-            resolve: async (parent, args) => {
+            resolve: async (_, args) => {
               const id = args.id;
 
               const profile = await fastify.db.profiles.findOne({ key: 'id', equals: id });
@@ -145,11 +138,11 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
           },
 
           post: {
-            type: GraphQLPost,
+            type: TPost,
             args: {
               id: { type: GraphQLID }
             },
-            resolve: async (parent, args) => {
+            resolve: async (_, args) => {
               const id = args.id;
 
               const post = await fastify.db.posts.findOne({ key: 'id', equals: id });
@@ -163,11 +156,11 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
           },
 
           memberType: {
-            type: GraphQLMemberType,
+            type: TMemberType,
             args: {
               id: { type: GraphQLID }
             },
-            resolve: async (parent, args) => {
+            resolve: async (_, args) => {
               const id = args.id;
 
               const memberType = await fastify.db.memberTypes.findOne({ key: 'id', equals: id });
@@ -178,56 +171,6 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         
               return memberType;
             }
-          },
-
-          // Get users with dependencies: 2.3
-          usersWithDependencies: {
-            type: new GraphQLList(GraphQLUserWithDependencies),
-            resolve: async () => await fastify.db.users.findMany()
-          },
-
-          // Get a single user with dependencies: 2.4
-          userWithDependencies: {
-            type: GraphQLUserWithDependencies,
-            args: {
-              id: { type: GraphQLID }
-            },
-            resolve: async (parent, args) => {
-              const id = args.id;
-
-              const user = await fastify.db.users.findOne({ key: 'id', equals: id });
-        
-              if (!user) {
-                throw fastify.httpErrors.notFound('User was not found...');
-              }
-        
-              return user;
-            }
-          },
-
-          // Get users with their userSubscribedTo, profile: 2.5
-          usersSubscribedToProfile: {
-            type: new GraphQLList(GraphQLUserSubscribedToProfile),
-            resolve: async () => await fastify.db.users.findMany()
-          },
-
-          // Get user with his subscribedToUser, posts: 2.6
-          subscribedToUserPosts: {
-            type: GraphQLSubscribedToUserPosts,
-            args: {
-              id: { type: GraphQLID }
-            },
-            resolve: async (parent, args) => {
-              const id = args.id;
-
-              const user = await fastify.db.users.findOne({ key: 'id', equals: id });
-        
-              if (!user) {
-                throw fastify.httpErrors.notFound('User was not found...');
-              }
-        
-              return user;
-            }
           }
         }
       });
@@ -236,7 +179,12 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         query: RootQuery
       });
 
-      const result = await graphql({ schema: schema, source: request.body.query! });
+      const result = await graphql({
+        schema: schema,
+        source: query!,
+        variableValues: variables,
+        contextValue: fastify
+      });
 
       return result;
     }
