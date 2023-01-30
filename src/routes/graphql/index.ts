@@ -4,6 +4,31 @@ import { graphqlBodySchema } from './schema';
 
 import { GraphQLObjectType, GraphQLList, GraphQLSchema, graphql } from 'graphql';
 
+const fillDatabaseWithMockData = async (fastify: any, i: number) => {
+  const mockUser = await fastify.db.users.create({
+    firstName: `firstName ${i}`,
+    lastName: `lastName ${i}`,
+    email: `email ${i}`
+  });
+
+  await fastify.db.profiles.create({
+    userId: mockUser.id,
+    memberTypeId: 'basic',
+    avatar: `avatar ${i}`,
+    sex: `sex ${i}`,
+    birthday: i,
+    country: `country ${i}`,
+    street: `street ${i}`,
+    city: `city ${i}`,
+  });
+
+  await fastify.db.posts.create({
+    userId: mockUser.id,
+    title: `title ${i}`,
+    content: `content ${i}`,
+  });
+};
+
 const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
   fastify
 ): Promise<void> => {
@@ -15,6 +40,11 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
       },
     },
     async function (request, reply) {
+      // Fill database with mock data
+      for (let i = 0; i < 3; i++) {
+        await fillDatabaseWithMockData(fastify, i);
+      }
+
       const RootQuery = new GraphQLObjectType({
         name: 'RootQuery',
         fields: {
