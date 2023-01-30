@@ -1,7 +1,7 @@
 
 # NodeJS-GraphQL
 
-Assignment: https://github.com/AlreadyBored/nodejs-assignments/blob/main/assignments/graphql-service/assignment.md
+Assignment: https://github.com/AlreadyBored/nodejs-assignments/blob/main/assignments/graphql-service/assignment.md  
 Scoring: https://github.com/AlreadyBored/nodejs-assignments/blob/main/assignments/graphql-service/score.md
 
 ## How to download and install application:  
@@ -77,7 +77,7 @@ variables:
         "userId": "USER_ID",
         "profileId": "PROFILE_ID",
         "postId": "POST_ID",
-        "memberTypeId": "MEMBER_TYPE_ID"
+        "memberTypeId": "MEMBERTYPE_ID"
     }
 }
 ```
