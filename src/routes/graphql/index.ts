@@ -7,7 +7,8 @@ import {
   isUserExists,
   isProfileExists,
   isPostExists,
-  isMemberTypeExists 
+  isMemberTypeExists,
+  isUserHasProfile
 } from './validators';
 
 import { FastifyInstance } from 'fastify';
@@ -209,19 +210,13 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
               const inputData = { ...args.variables };
               const { userId, memberTypeId, } = inputData;
 
-              // TODO: check if user exists
+              const user = await fastify.db.users.findOne({ key: 'id', equals: userId });
+              await isUserExists(user, fastify);
 
               const memberType = await fastify.db.memberTypes.findOne({ key: 'id', equals: memberTypeId });
+              await isMemberTypeExists(memberType, fastify);
         
-              if (!memberType) {
-                throw fastify.httpErrors.badRequest('Member type was not found...');
-              }
-        
-              const isUserHasProfile = await fastify.db.profiles.findOne({ key: 'userId', equals: userId });
-        
-              if (isUserHasProfile) {
-                throw fastify.httpErrors.badRequest('You have a profile...');
-              }
+              await isUserHasProfile(userId, fastify);
         
               const profile = await fastify.db.profiles.create(inputData);
         
@@ -238,11 +233,8 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
               const inputData = { ...args.variables };
               const { userId } = inputData;
 
-              const postAuthor = await fastify.db.users.findOne({ key: 'id', equals: userId });
-        
-              if (!postAuthor) {
-                throw fastify.httpErrors.badRequest('Author of post was not found...');
-              }
+              const user = await fastify.db.users.findOne({ key: 'id', equals: userId });
+              await isUserExists(user, fastify);
 
               const createdPost = await fastify.db.posts.create(inputData);
 
@@ -279,11 +271,11 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
             resolve: async (_, args) => {
               const id = args.id;
               const inputData = { ...args.variables };
+              const { memberTypeId } = inputData;
 
               const profile = await fastify.db.profiles.findOne({ key: 'id', equals: id });
               await isProfileExists(profile, fastify);
 
-              const memberTypeId = inputData.memberTypeId;
               const memberType = await fastify.db.memberTypes.findOne({ key: 'id', equals: memberTypeId });
               await isMemberTypeExists(memberType, fastify);
 

@@ -29,9 +29,18 @@ const isMemberTypeExists = async (memberType: MemberTypeEntity | null, fastify: 
   }
 };
 
+const isUserHasProfile = async (userId: string, fastify: FastifyInstance) => {
+  const profile = await fastify.db.profiles.findOne({ key: 'userId', equals: userId });
+
+  if (profile) {
+    throw fastify.httpErrors.badRequest('You have a profile...');
+  }
+};
+
 export {
   isUserExists,
   isProfileExists,
   isPostExists,
-  isMemberTypeExists 
+  isMemberTypeExists ,
+  isUserHasProfile
 };
