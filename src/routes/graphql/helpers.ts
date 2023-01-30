@@ -5,67 +5,67 @@ import { UserEntity } from '../../utils/DB/entities/DBUsers';
 import { GraphQLUser, GraphQLProfile, GraphQLPost, GraphQLMemberType } from './types';
 
 const GetGraphQLUserWithDependencies = async(fastify: FastifyInstance) => {
-    const GraphQLUserWithDependencies = new GraphQLObjectType({
-        name: 'UserWithDependencies',
-        fields: () => ({
-            user: {
-                type: GraphQLUser,
-                resolve: async (parent: UserEntity) => {
-                    const id = parent.id;
+  const GraphQLUserWithDependencies = new GraphQLObjectType({
+    name: 'UserWithDependencies',
+    fields: () => ({
+      user: {
+        type: GraphQLUser,
+        resolve: async (parent: UserEntity) => {
+          const id = parent.id;
 
-                    const user = await fastify.db.users.findOne({ key: 'id', equals: id });
+          const user = await fastify.db.users.findOne({ key: 'id', equals: id });
 
-                    return user;
-                }
-            },
-            
-            profile: {
-                type: GraphQLProfile,
+          return user;
+        }
+      },
+      
+      profile: {
+        type: GraphQLProfile,
 
-                resolve: async (parent: UserEntity) => {
-                    const userId = parent.id;
+        resolve: async (parent: UserEntity) => {
+          const userId = parent.id;
 
-                    const profile = await fastify.db.profiles.findOne({ key: 'userId', equals: userId });
+          const profile = await fastify.db.profiles.findOne({ key: 'userId', equals: userId });
 
-                    return profile;
-                }
-            },
+          return profile;
+        }
+      },
 
-            posts: {
-                type: new GraphQLList(GraphQLPost),
+      posts: {
+        type: new GraphQLList(GraphQLPost),
 
-                resolve: async (parent: UserEntity) => {
-                    const userId = parent.id;
+        resolve: async (parent: UserEntity) => {
+          const userId = parent.id;
 
-                    const posts = await fastify.db.posts.findMany({ key: 'userId', equals: userId });
+          const posts = await fastify.db.posts.findMany({ key: 'userId', equals: userId });
 
-                    return posts;
-                }
-            },
+          return posts;
+        }
+      },
 
-            memberType: {
-                type: GraphQLMemberType,
+      memberType: {
+        type: GraphQLMemberType,
 
-                resolve: async (parent: UserEntity) => {
-                    const userId = parent.id;
+        resolve: async (parent: UserEntity) => {
+          const userId = parent.id;
 
-                    const profile = await fastify.db.profiles.findOne({ key: 'userId', equals: userId });
+          const profile = await fastify.db.profiles.findOne({ key: 'userId', equals: userId });
 
-                    if (!profile) {
-                        return null;
-                    }
+          if (!profile) {
+              return null;
+          }
 
-                    const memberTypeId = profile.memberTypeId;
+          const memberTypeId = profile.memberTypeId;
 
-                    const memberType = await fastify.db.memberTypes.findOne({ key: 'id', equals: memberTypeId });
+          const memberType = await fastify.db.memberTypes.findOne({ key: 'id', equals: memberTypeId });
 
-                    return memberType;
-                }
-            }
-        })
-    });
+          return memberType;
+        }
+      }
+    })
+  });
 
-    return GraphQLUserWithDependencies;
+  return GraphQLUserWithDependencies;
 };
 
 export { GetGraphQLUserWithDependencies };
