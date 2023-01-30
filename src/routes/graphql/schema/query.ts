@@ -17,22 +17,22 @@ const getRootQuery = async (fastify: FastifyInstance) => {
       // Get all entities
       users: {
         type: new GraphQLList(TUser),
-        resolve: async () => await fastify.db.users.findMany()
+        resolve: async () => fastify.db.users.findMany()
       },
 
       profiles: {
         type: new GraphQLList(TProfile),
-        resolve: async () => await fastify.db.profiles.findMany()
+        resolve: async () => fastify.db.profiles.findMany()
       },
 
       posts: {
         type: new GraphQLList(TPost),
-        resolve: async () => await fastify.db.posts.findMany()
+        resolve: async () => fastify.db.posts.findMany()
       },
 
       memberTypes: {
         type: new GraphQLList(TMemberType),
-        resolve: async () => await fastify.db.memberTypes.findMany()
+        resolve: async () => fastify.db.memberTypes.findMany()
       },
 
       // Get a single entity
