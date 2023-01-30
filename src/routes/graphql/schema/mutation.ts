@@ -3,7 +3,14 @@ import { GraphQLObjectType, GraphQLNonNull, GraphQLID } from 'graphql';
 
 import { TUser, TProfile, TPost, TMemberType } from '../types/defaultTypes';
 import { TCreateUserInput, TCreateProfileInput, TCreatePostInput } from '../types/createTypes';
-import { TUpdateUserInput, TUpdateProfileInput, TUpdatePostInput, TUpdateMemberTypeInput } from '../types/updateTypes';
+import {
+  TUpdateUserInput,
+  TUpdateProfileInput,
+  TUpdatePostInput,
+  TUpdateMemberTypeInput,
+  TSubscribeToUserInput,
+  TUnsubscribeFromUserInput
+} from '../types/updateTypes';
 
 import {
   isUserExists,
@@ -160,11 +167,10 @@ const getRootMutation = async (fastify: FastifyInstance) => {
       subscribeToUser: {
         type: TUser,
         args: {
-          id: { type: new GraphQLNonNull(GraphQLID) },
-          subscribeToUserId: { type: new GraphQLNonNull(GraphQLID) }
+          variables: { type: new GraphQLNonNull(TSubscribeToUserInput) }
         },
         resolve: async (_, args) => {
-          const { id, subscribeToUserId } = args;
+          const { id, subscribeToUserId } = args.variables;
 
           const user = await fastify.db.users.findOne({ key: 'id', equals: id });
           await isUserExists(user, fastify);
@@ -188,11 +194,10 @@ const getRootMutation = async (fastify: FastifyInstance) => {
       unsubscribeFromUser: {
         type: TUser,
         args: {
-          id: { type: new GraphQLNonNull(GraphQLID) },
-          unsubscribeFromUserId: { type: new GraphQLNonNull(GraphQLID) }
+          variables: { type: new GraphQLNonNull(TUnsubscribeFromUserInput) }
         },
         resolve: async (_, args) => {
-          const { id, unsubscribeFromUserId } = args;
+          const { id, unsubscribeFromUserId } = args.variables;
 
           const user = await fastify.db.users.findOne({ key: 'id', equals: id });
           await isUserExists(user, fastify);

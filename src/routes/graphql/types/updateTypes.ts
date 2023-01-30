@@ -1,6 +1,7 @@
 import {
   GraphQLString,
   GraphQLInt,
+  GraphQLID,
   GraphQLInputObjectType,
   GraphQLNonNull
 } from 'graphql';
@@ -43,4 +44,27 @@ const TUpdateMemberTypeInput = new GraphQLInputObjectType({
   })
 });
 
-export { TUpdateUserInput, TUpdateProfileInput, TUpdatePostInput, TUpdateMemberTypeInput };
+const TSubscribeToUserInput = new GraphQLInputObjectType({
+  name: 'SubscribeToUserInput',
+  fields: () => ({
+    id: { type: new GraphQLNonNull(GraphQLID) },
+    subscribeToUserId: { type: new GraphQLNonNull(GraphQLID) }
+  })
+});
+
+const TUnsubscribeFromUserInput = new GraphQLInputObjectType({
+  name: 'UnsubscribeFromUserInput',
+  fields: () => ({
+    id: { type: new GraphQLNonNull(GraphQLID) },
+    unsubscribeFromUserId: { type: new GraphQLNonNull(GraphQLID) }
+  })
+});
+
+export {
+  TUpdateUserInput,
+  TUpdateProfileInput,
+  TUpdatePostInput,
+  TUpdateMemberTypeInput,
+  TSubscribeToUserInput,
+  TUnsubscribeFromUserInput
+};
