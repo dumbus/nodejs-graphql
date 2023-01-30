@@ -1,6 +1,6 @@
 import { FastifyPluginAsyncJsonSchemaToTs } from '@fastify/type-provider-json-schema-to-ts';
 import { graphqlBodySchema } from './schema';
-import { TUser, TProfile, TPost, TMemberType } from './types/types';
+import { TUser, TProfile, TPost, TMemberType } from './types/defaultTypes';
 import { TCreateUserInput, TCreateProfileInput, TCreatePostInput } from './types/createTypes';
 import { TUpdateUserInput, TUpdateProfileInput, TUpdatePostInput, TUpdateMemberTypeInput } from './types/updateTypes';
 import {
@@ -248,7 +248,88 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
 
               return createdPost;
             }
-          }
+          },
+
+          // Update entities
+          updateUser: {
+            type: TUser,
+            args: {
+              id: { type: new GraphQLNonNull(GraphQLID) },
+              variables: { type: new GraphQLNonNull(TUpdateUserInput) }
+            },
+            resolve: async (_, args) => {
+              const id = args.id;
+              const inputData = { ...args.variables };
+
+              const user = await fastify.db.users.findOne({ key: 'id', equals: id });
+              await isUserExists(user, fastify);
+
+              const updatedUser = await fastify.db.users.change(id, inputData);
+
+              return updatedUser;
+            }
+          },
+
+          updateProfile: {
+            type: TProfile,
+            args: {
+              id: { type: new GraphQLNonNull(GraphQLID) },
+              variables: { type: new GraphQLNonNull(TUpdateProfileInput) }
+            },
+            resolve: async (_, args) => {
+              const id = args.id;
+              const inputData = { ...args.variables };
+
+              const profile = await fastify.db.profiles.findOne({ key: 'id', equals: id });
+              await isProfileExists(profile, fastify);
+
+              const memberTypeId = inputData.memberTypeId;
+              const memberType = await fastify.db.memberTypes.findOne({ key: 'id', equals: memberTypeId });
+              await isMemberTypeExists(memberType, fastify);
+
+              const updatedProfile = await fastify.db.profiles.change(id, inputData);
+
+              return updatedProfile;
+            }
+          },
+
+          updatePost: {
+            type: TPost,
+            args: {
+              id: { type: new GraphQLNonNull(GraphQLID) },
+              variables: { type: new GraphQLNonNull(TUpdatePostInput) }
+            },
+            resolve: async (_, args) => {
+              const id = args.id;
+              const inputData = { ...args.variables };
+
+              const post = await fastify.db.posts.findOne({ key: 'id', equals: id });
+              await isPostExists(post, fastify);
+
+              const updatedPost = await fastify.db.posts.change(id, inputData);
+
+              return updatedPost;
+            }
+          },
+
+          updateMemberType: {
+            type: TMemberType,
+            args: {
+              id: { type: new GraphQLNonNull(GraphQLID) },
+              variables: { type: new GraphQLNonNull(TUpdateMemberTypeInput) }
+            },
+            resolve: async (_, args) => {
+              const id = args.id;
+              const inputData = { ...args.variables };
+
+              const memberType = await fastify.db.memberTypes.findOne({ key: 'id', equals: id });
+              await isMemberTypeExists(memberType, fastify);
+
+              const updatedMemberType = await fastify.db.posts.change(id, inputData);
+
+              return updatedMemberType;
+            }
+          }       
         }
       });
 
