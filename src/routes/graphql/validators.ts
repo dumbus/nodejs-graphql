@@ -37,10 +37,39 @@ const isUserHasProfile = async (userId: string, fastify: FastifyInstance) => {
   }
 };
 
+const isUserHimself = async (userId: string, subscribeToUserId: string, fastify: FastifyInstance) => {
+  if (userId === subscribeToUserId) {
+    throw fastify.httpErrors.badRequest('You are trying to subscribe yourself...');
+  }
+};
+
+const isUserSubscribed = async (userId: string, userToSubscribe: UserEntity | null, fastify: FastifyInstance) => {
+  if (!userToSubscribe) {
+    throw fastify.httpErrors.notFound('User you are trying to subscribe was not found...');
+  }
+
+  if (userToSubscribe.subscribedToUserIds.includes(userId)) {
+    throw fastify.httpErrors.badRequest('You are already subscribed...');
+  }
+};
+
+const isUserUnsubscribed = async (userId: string, userToUnsubscribe: UserEntity | null, fastify: FastifyInstance) => {
+  if (!userToUnsubscribe) {
+    throw fastify.httpErrors.notFound('User you are trying to unsubscribe was not found...');
+  }
+
+  if (!userToUnsubscribe.subscribedToUserIds.includes(userId)) {
+    throw fastify.httpErrors.badRequest('You are already subscribed...');
+  }
+};
+
 export {
   isUserExists,
   isProfileExists,
   isPostExists,
   isMemberTypeExists ,
-  isUserHasProfile
+  isUserHasProfile,
+  isUserHimself,
+  isUserSubscribed,
+  isUserUnsubscribed
 };

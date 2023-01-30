@@ -8,7 +8,10 @@ import {
   isProfileExists,
   isPostExists,
   isMemberTypeExists,
-  isUserHasProfile
+  isUserHasProfile,
+  isUserHimself,
+  isUserSubscribed,
+  isUserUnsubscribed
 } from './validators';
 
 import { FastifyInstance } from 'fastify';
@@ -321,7 +324,66 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
 
               return updatedMemberType;
             }
-          }       
+          },
+
+          subscribeToUser: {
+            type: TUser,
+            args: {
+              id: { type: new GraphQLNonNull(GraphQLID) },
+              subscribeToUserId: { type: new GraphQLNonNull(GraphQLID) }
+            },
+            resolve: async (_, args) => {
+              const { id, subscribeToUserId } = args;
+
+              const user = await fastify.db.users.findOne({ key: 'id', equals: id });
+              await isUserExists(user, fastify);
+
+              const userToSubscribe = await fastify.db.users.findOne({ key: 'id', equals: subscribeToUserId });
+              await isUserHimself(id, subscribeToUserId, fastify);
+              await isUserSubscribed(id, userToSubscribe, fastify);
+
+              if (userToSubscribe) {
+                const changesDTO = {
+                  subscribedToUserIds: [...userToSubscribe.subscribedToUserIds, id]
+                };
+  
+                const subscribedUser = await fastify.db.users.change(subscribeToUserId, changesDTO);
+  
+                return subscribedUser;
+              }
+            }
+          },
+
+          unsubscribeFromUser: {
+            type: TUser,
+            args: {
+              id: { type: new GraphQLNonNull(GraphQLID) },
+              unsubscribeFromUserId: { type: new GraphQLNonNull(GraphQLID) }
+            },
+            resolve: async (_, args) => {
+              const { id, unsubscribeFromUserId } = args;
+
+              const user = await fastify.db.users.findOne({ key: 'id', equals: id });
+              await isUserExists(user, fastify);
+
+              const userToUnsubscribe = await fastify.db.users.findOne({ key: 'id', equals: unsubscribeFromUserId });
+              await isUserHimself(id, unsubscribeFromUserId, fastify);
+              await isUserUnsubscribed(id, userToUnsubscribe, fastify);
+
+              if (userToUnsubscribe) {
+                const deletingUserIndex = userToUnsubscribe.subscribedToUserIds.indexOf(id);
+                userToUnsubscribe.subscribedToUserIds.splice(deletingUserIndex, 1);
+        
+                const changesDTO = {
+                  subscribedToUserIds: userToUnsubscribe.subscribedToUserIds
+                }
+        
+                const unsubscribedUser = await fastify.db.users.change(unsubscribeFromUserId, changesDTO);
+        
+                return unsubscribedUser;
+              }
+            }
+          }
         }
       });
 
