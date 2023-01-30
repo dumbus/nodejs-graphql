@@ -7,8 +7,19 @@ import {
   TMemberType,
   TCreateUserInput,
   TCreateProfileInput,
-  TCreatePostInput
+  TCreatePostInput,
+  TUpdateUserInput,
+  TUpdateProfileInput,
+  TUpdatePostInput,
+  TUpdateMemberTypeInput
 } from './types';
+
+import {
+  isUserExists,
+  isProfileExists,
+  isPostExists,
+  isMemberTypeExists 
+} from './validators';
 
 import { FastifyInstance } from 'fastify';
 import {
@@ -125,10 +136,8 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
               const id = args.id;
 
               const user = await fastify.db.users.findOne({ key: 'id', equals: id });
-        
-              if (!user) {
-                throw fastify.httpErrors.notFound('User was not found...');
-              }
+
+              await isUserExists(user, fastify);
         
               return user;
             }
@@ -144,9 +153,7 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
 
               const profile = await fastify.db.profiles.findOne({ key: 'id', equals: id });
         
-              if (!profile) {
-                throw fastify.httpErrors.notFound('Profile was not found...');
-              }
+              await isProfileExists(profile, fastify);
         
               return profile;
             }
@@ -162,9 +169,7 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
 
               const post = await fastify.db.posts.findOne({ key: 'id', equals: id });
 
-              if (!post) {
-                throw fastify.httpErrors.notFound('Post was not found...');
-              }
+              await isPostExists(post, fastify);
         
               return post;
             }
@@ -180,9 +185,7 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
 
               const memberType = await fastify.db.memberTypes.findOne({ key: 'id', equals: id });
 
-              if (!memberType) {
-                throw fastify.httpErrors.notFound('Member Type was not found...');
-              }
+              await isMemberTypeExists(memberType, fastify);
         
               return memberType;
             }
@@ -216,6 +219,8 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
             resolve: async (_, args) => {
               const inputData = { ...args.variables };
               const { userId, memberTypeId, } = inputData;
+
+              // TODO: check if user exists
 
               const memberType = await fastify.db.memberTypes.findOne({ key: 'id', equals: memberTypeId });
         
@@ -254,7 +259,7 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
 
               return createdPost;
             }
-          },
+          }
         }
       });
 
