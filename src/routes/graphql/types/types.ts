@@ -1,4 +1,4 @@
-import { UserEntity } from '../../utils/DB/entities/DBUsers';
+import { UserEntity } from '../../../utils/DB/entities/DBUsers';
 
 import { FastifyInstance } from 'fastify';
 import {
@@ -7,9 +7,7 @@ import {
   GraphQLInt,
   GraphQLID,
   GraphQLList,
-  GraphQLInputObjectType,
   GraphQLOutputType,
-  GraphQLNonNull
 } from 'graphql';
 
 const TUser: GraphQLOutputType = new GraphQLObjectType({
@@ -129,86 +127,4 @@ const TMemberType = new GraphQLObjectType({
   })
 });
 
-const TCreateUserInput = new GraphQLInputObjectType({
-  name: 'CreateUserInput',
-  fields: () => ({
-    firstName: { type: new GraphQLNonNull(GraphQLString) },
-    lastName: { type: new GraphQLNonNull(GraphQLString) },
-    email: { type: new GraphQLNonNull(GraphQLString) }
-  })
-});
-
-const TCreateProfileInput = new GraphQLInputObjectType({
-  name: 'CreateProfileInput',
-  fields: () => ({
-    userId: { type: new GraphQLNonNull(GraphQLID) },
-    memberTypeId: { type: new GraphQLNonNull(GraphQLString) },
-    avatar: { type: new GraphQLNonNull(GraphQLString) },
-    sex: { type: new GraphQLNonNull(GraphQLString) },
-    birthday: { type: new GraphQLNonNull(GraphQLInt) },
-    country: { type: new GraphQLNonNull(GraphQLString) },
-    street: { type: new GraphQLNonNull(GraphQLString) },
-    city: { type: new GraphQLNonNull(GraphQLString) }
-  })
-});
-
-const TCreatePostInput = new GraphQLInputObjectType({
-  name: 'CreatePostInput',
-  fields: () => ({
-    userId: { type: new GraphQLNonNull(GraphQLID) },
-    title: { type: new GraphQLNonNull(GraphQLString) },
-    content: { type: new GraphQLNonNull(GraphQLString) }
-  })
-});
-
-const TUpdateUserInput = new GraphQLInputObjectType({
-  name: 'UpdateUserInput',
-  fields: () => ({
-    firstName: { type: GraphQLString },
-    lastName: { type: GraphQLString },
-    email: { type: GraphQLString }
-  })
-});
-
-const TUpdateProfileInput = new GraphQLInputObjectType({
-  name: 'UpdateProfileInput',
-  fields: () => ({
-    avatar: { type: GraphQLString },
-    sex: { type: GraphQLString },
-    birthday: { type: GraphQLInt },
-    country: { type: GraphQLString },
-    street: { type: GraphQLString },
-    city: { type: GraphQLString },
-    memberTypeId: { type: GraphQLString }
-  })
-});
-
-const TUpdatePostInput = new GraphQLInputObjectType({
-  name: 'UpdatePostInput',
-  fields: () => ({
-    title: { type: new GraphQLNonNull(GraphQLString) },
-    content: { type: new GraphQLNonNull(GraphQLString) }
-  })
-});
-
-const TUpdateMemberTypeInput = new GraphQLInputObjectType({
-  name: 'UpdateMemberTypeInput',
-  fields: () => ({
-    discount: { type: GraphQLInt },
-    monthPostsLimit: { type: GraphQLInt }
-  })
-});
-
-export {
-  TUser,
-  TProfile,
-  TPost,
-  TMemberType,
-  TCreateUserInput,
-  TCreateProfileInput,
-  TCreatePostInput,
-  TUpdateUserInput,
-  TUpdateProfileInput,
-  TUpdatePostInput,
-  TUpdateMemberTypeInput
-};
+export { TUser, TProfile, TPost, TMemberType };

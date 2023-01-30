@@ -1,19 +1,8 @@
 import { FastifyPluginAsyncJsonSchemaToTs } from '@fastify/type-provider-json-schema-to-ts';
 import { graphqlBodySchema } from './schema';
-import {
-  TUser,
-  TProfile,
-  TPost,
-  TMemberType,
-  TCreateUserInput,
-  TCreateProfileInput,
-  TCreatePostInput,
-  TUpdateUserInput,
-  TUpdateProfileInput,
-  TUpdatePostInput,
-  TUpdateMemberTypeInput
-} from './types';
-
+import { TUser, TProfile, TPost, TMemberType } from './types/types';
+import { TCreateUserInput, TCreateProfileInput, TCreatePostInput } from './types/createTypes';
+import { TUpdateUserInput, TUpdateProfileInput, TUpdatePostInput, TUpdateMemberTypeInput } from './types/updateTypes';
 import {
   isUserExists,
   isProfileExists,
