@@ -1,6 +1,10 @@
 import { FastifyPluginAsyncJsonSchemaToTs } from '@fastify/type-provider-json-schema-to-ts';
 import { GraphQLUser, GraphQLProfile, GraphQLPost, GraphQLMemberType } from './types';
-import { GetGraphQLUserWithDependencies, GetGraphQLUserSubscribedToProfile } from './helpers';
+import {
+  GetGraphQLUserWithDependencies,
+  GetGraphQLUserSubscribedToProfile,
+  GetGraphQLSubscribedToUserPosts
+} from './helpers';
 import { graphqlBodySchema } from './schema';
 
 import { FastifyInstance } from 'fastify';
@@ -77,6 +81,7 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
 
       const GraphQLUserWithDependencies = await GetGraphQLUserWithDependencies(fastify);
       const GraphQLUserSubscribedToProfile = await GetGraphQLUserSubscribedToProfile(fastify);
+      const GraphQLSubscribedToUserPosts = await GetGraphQLSubscribedToUserPosts(fastify);
 
       const RootQuery = new GraphQLObjectType({
         name: 'RootQuery',
@@ -200,10 +205,29 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
             }
           },
 
-          // Get users with their userSubscribedTo profile: 2.5
+          // Get users with their userSubscribedTo, profile: 2.5
           usersSubscribedToProfile: {
             type: new GraphQLList(GraphQLUserSubscribedToProfile),
             resolve: async () => await fastify.db.users.findMany()
+          },
+
+          // Get user with his subscribedToUser, posts: 2.6
+          subscribedToUserPosts: {
+            type: GraphQLSubscribedToUserPosts,
+            args: {
+              id: { type: GraphQLID }
+            },
+            resolve: async (parent, args) => {
+              const id = args.id;
+
+              const user = await fastify.db.users.findOne({ key: 'id', equals: id });
+        
+              if (!user) {
+                throw fastify.httpErrors.notFound('User was not found...');
+              }
+        
+              return user;
+            }
           }
         }
       });

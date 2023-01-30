@@ -111,4 +111,57 @@ const GetGraphQLUserSubscribedToProfile = async (fastify: FastifyInstance) => {
   return GraphQLUserSubscribedToProfile;
 }
 
-export { GetGraphQLUserWithDependencies, GetGraphQLUserSubscribedToProfile };
+const GetGraphQLSubscribedToUserPosts = async (fastify: FastifyInstance) => {
+  const GraphQLSubscribedToUserPosts = new GraphQLObjectType({
+    name: 'SubscribedToUserPosts',
+    fields: () => ({
+      user: {
+        type: GraphQLUser,
+        resolve: async (parent: UserEntity) => {
+          const id = parent.id;
+
+          const user = await fastify.db.users.findOne({ key: 'id', equals: id });
+
+          return user;
+        }
+      },
+
+      subscribedToUser: {
+        type: new GraphQLList(GraphQLUser),
+        resolve: async (parent: UserEntity) => {
+          const subscribedToUserIds = parent.subscribedToUserIds;
+
+          const subscribedToUser: UserEntity[] = [];
+
+          for (let i = 0; i < subscribedToUserIds.length; i++) {
+            const currentSubscriberId = subscribedToUserIds[i];
+
+            const currentSubscriber = await fastify.db.users.findOne({ key: 'id', equals: currentSubscriberId });
+
+            if (currentSubscriber) {
+              subscribedToUser.push(currentSubscriber);
+            }
+          }
+
+          return subscribedToUser;
+        }
+      },
+
+      posts: {
+        type: new GraphQLList(GraphQLPost),
+
+        resolve: async (parent: UserEntity) => {
+          const userId = parent.id;
+
+          const posts = await fastify.db.posts.findMany({ key: 'userId', equals: userId });
+
+          return posts;
+        }
+      },
+    })
+  });
+
+  return GraphQLSubscribedToUserPosts;
+}
+
+export { GetGraphQLUserWithDependencies, GetGraphQLUserSubscribedToProfile, GetGraphQLSubscribedToUserPosts };

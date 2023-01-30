@@ -7,7 +7,8 @@ const GraphQLUser = new GraphQLObjectType({
     firstName: { type: GraphQLString },
     lastName: { type: GraphQLString },
     email: { type: GraphQLString },
-    userSubscribedToIds: { type: new GraphQLList(GraphQLID) }
+    userSubscribedToIds: { type: new GraphQLList(GraphQLID) },
+    subscribedToUserIds: { type: new GraphQLList(GraphQLID) }
   })
 });
 
