@@ -1,9 +1,9 @@
 import { FastifyInstance } from 'fastify';
 
-import { UserEntity } from '../../utils/DB/entities/DBUsers';
-import { ProfileEntity } from '../../utils/DB/entities/DBProfiles';
-import { PostEntity } from '../../utils/DB/entities/DBPosts';
-import { MemberTypeEntity } from '../../utils/DB/entities/DBMemberTypes';
+import { UserEntity } from '../../../utils/DB/entities/DBUsers';
+import { ProfileEntity } from '../../../utils/DB/entities/DBProfiles';
+import { PostEntity } from '../../../utils/DB/entities/DBPosts';
+import { MemberTypeEntity } from '../../../utils/DB/entities/DBMemberTypes';
 
 const isUserExists = async (user: UserEntity | null, fastify: FastifyInstance) => {
   if (!user) {
