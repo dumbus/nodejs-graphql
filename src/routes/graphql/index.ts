@@ -1,5 +1,6 @@
 import { FastifyPluginAsyncJsonSchemaToTs } from '@fastify/type-provider-json-schema-to-ts';
 import { GraphQLUser, GraphQLProfile, GraphQLPost, GraphQLMemberType } from './types';
+import { GetGraphQLUserWithDependencies } from './helpers';
 import { graphqlBodySchema } from './schema';
 
 import { FastifyInstance } from 'fastify';
@@ -48,6 +49,8 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         await fillDatabaseWithMockData(fastify);
         i++;
       }
+
+      const GraphQLUserWithDependencies = await GetGraphQLUserWithDependencies(fastify);
 
       const RootQuery = new GraphQLObjectType({
         name: 'RootQuery',
@@ -144,6 +147,12 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         
               return memberType;
             }
+          },
+
+          // Get users with dependencies: 2.3
+          usersWithDependencies: {
+            type: new GraphQLList(GraphQLUserWithDependencies),
+            resolve: () => fastify.db.users.findMany()
           },
         }
       });
