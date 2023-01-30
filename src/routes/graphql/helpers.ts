@@ -4,7 +4,7 @@ import { GraphQLObjectType, GraphQLList } from 'graphql';
 import { UserEntity } from '../../utils/DB/entities/DBUsers';
 import { GraphQLUser, GraphQLProfile, GraphQLPost, GraphQLMemberType } from './types';
 
-const GetGraphQLUserWithDependencies = async(fastify: FastifyInstance) => {
+const GetGraphQLUserWithDependencies = async (fastify: FastifyInstance) => {
   const GraphQLUserWithDependencies = new GraphQLObjectType({
     name: 'UserWithDependencies',
     fields: () => ({
@@ -52,7 +52,7 @@ const GetGraphQLUserWithDependencies = async(fastify: FastifyInstance) => {
           const profile = await fastify.db.profiles.findOne({ key: 'userId', equals: userId });
 
           if (!profile) {
-              return null;
+            return null;
           }
 
           const memberTypeId = profile.memberTypeId;
@@ -68,4 +68,47 @@ const GetGraphQLUserWithDependencies = async(fastify: FastifyInstance) => {
   return GraphQLUserWithDependencies;
 };
 
-export { GetGraphQLUserWithDependencies };
+const GetGraphQLUserSubscribedToProfile = async (fastify: FastifyInstance) => {
+  const GraphQLUserSubscribedToProfile = new GraphQLObjectType({
+    name: 'UserSubscribedToProfile',
+    fields: () => ({
+      user: {
+        type: GraphQLUser,
+        resolve: async (parent: UserEntity) => {
+          const id = parent.id;
+
+          const user = await fastify.db.users.findOne({ key: 'id', equals: id });
+
+          return user;
+        }
+      },
+
+      userSubscribedTo: {
+        type: new GraphQLList(GraphQLUser),
+        resolve: async (parent: UserEntity) => {
+          const userId = parent.id;
+
+          const userSubscribedTo = await fastify.db.users.findMany({ key: 'subscribedToUserIds', inArray: userId });
+
+          return userSubscribedTo;
+        }
+      },
+
+      profile: {
+        type: GraphQLProfile,
+
+        resolve: async (parent: UserEntity) => {
+          const userId = parent.id;
+
+          const profile = await fastify.db.profiles.findOne({ key: 'userId', equals: userId });
+
+          return profile;
+        }
+      },
+    })
+  });
+
+  return GraphQLUserSubscribedToProfile;
+}
+
+export { GetGraphQLUserWithDependencies, GetGraphQLUserSubscribedToProfile };

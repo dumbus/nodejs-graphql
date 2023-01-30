@@ -1,6 +1,6 @@
 import { FastifyPluginAsyncJsonSchemaToTs } from '@fastify/type-provider-json-schema-to-ts';
 import { GraphQLUser, GraphQLProfile, GraphQLPost, GraphQLMemberType } from './types';
-import { GetGraphQLUserWithDependencies } from './helpers';
+import { GetGraphQLUserWithDependencies, GetGraphQLUserSubscribedToProfile } from './helpers';
 import { graphqlBodySchema } from './schema';
 
 import { FastifyInstance } from 'fastify';
@@ -33,8 +33,8 @@ const fillDatabaseWithMockData = async (fastify: FastifyInstance) => {
     user2
   ];
 
+  // user1 && user2 are subscribed to user0
   await fastify.db.users.change(user0.id, { subscribedToUserIds: [user1.id, user2.id] });
-  await fastify.db.users.change(user2.id, { subscribedToUserIds: [user0.id, user1.id] });
 
   for (let i = 0; i < 3; i++) {
     const userId = users[i].id;
@@ -76,6 +76,7 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
       }
 
       const GraphQLUserWithDependencies = await GetGraphQLUserWithDependencies(fastify);
+      const GraphQLUserSubscribedToProfile = await GetGraphQLUserSubscribedToProfile(fastify);
 
       const RootQuery = new GraphQLObjectType({
         name: 'RootQuery',
@@ -198,6 +199,12 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
               return user;
             }
           },
+
+          // Get users with their userSubscribedTo profile: 2.5
+          usersSubscribedToProfile: {
+            type: new GraphQLList(GraphQLUserSubscribedToProfile),
+            resolve: async () => await fastify.db.users.findMany()
+          }
         }
       });
 
