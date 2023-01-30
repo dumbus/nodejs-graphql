@@ -6,31 +6,56 @@ import { graphqlBodySchema } from './schema';
 import { FastifyInstance } from 'fastify';
 import { GraphQLObjectType, GraphQLList, GraphQLSchema, graphql, GraphQLID } from 'graphql';
 
-let i = 0;
+let isMockDataCreated = false;
 
 const fillDatabaseWithMockData = async (fastify: FastifyInstance) => {
-  const mockUser = await fastify.db.users.create({
-    firstName: `firstName ${i}`,
-    lastName: `lastName ${i}`,
-    email: `email ${i}`
+  const user0 = await fastify.db.users.create({
+    firstName: `firstName 0`,
+    lastName: `lastName 0`,
+    email: `email 0`
   });
 
-  await fastify.db.profiles.create({
-    userId: mockUser.id,
-    memberTypeId: 'basic',
-    avatar: `avatar ${i}`,
-    sex: `sex ${i}`,
-    birthday: i,
-    country: `country ${i}`,
-    street: `street ${i}`,
-    city: `city ${i}`,
+  const user1 = await fastify.db.users.create({
+    firstName: `firstName 1`,
+    lastName: `lastName 1`,
+    email: `email 1`
   });
 
-  await fastify.db.posts.create({
-    userId: mockUser.id,
-    title: `title ${i}`,
-    content: `content ${i}`,
+  const user2 = await fastify.db.users.create({
+    firstName: `firstName 2`,
+    lastName: `lastName 2`,
+    email: `email 2`
   });
+
+  const users = [
+    user0,
+    user1,
+    user2
+  ];
+
+  await fastify.db.users.change(user0.id, { subscribedToUserIds: [user1.id, user2.id] });
+  await fastify.db.users.change(user2.id, { subscribedToUserIds: [user0.id, user1.id] });
+
+  for (let i = 0; i < 3; i++) {
+    const userId = users[i].id;
+
+    await fastify.db.profiles.create({
+      userId,
+      memberTypeId: 'basic',
+      avatar: `avatar ${i}`,
+      sex: `sex ${i}`,
+      birthday: i,
+      country: `country ${i}`,
+      street: `street ${i}`,
+      city: `city ${i}`,
+    });
+  
+    await fastify.db.posts.create({
+      userId,
+      title: `title ${i}`,
+      content: `content ${i}`,
+    });
+  }
 };
 
 const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
@@ -45,9 +70,9 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
     },
     async function (request, reply) {
       // Fill database with mock data
-      while (i < 3) {
+      if (!isMockDataCreated) {
         await fillDatabaseWithMockData(fastify);
-        i++;
+        isMockDataCreated = true;
       }
 
       const GraphQLUserWithDependencies = await GetGraphQLUserWithDependencies(fastify);
@@ -58,22 +83,22 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
           // Get all entities: 2.1
           users: {
             type: new GraphQLList(GraphQLUser),
-            resolve: () => fastify.db.users.findMany()
+            resolve: async () => await fastify.db.users.findMany()
           },
 
           profiles: {
             type: new GraphQLList(GraphQLProfile),
-            resolve: () => fastify.db.profiles.findMany()
+            resolve: async () => await fastify.db.profiles.findMany()
           },
 
           posts: {
             type: new GraphQLList(GraphQLPost),
-            resolve: () => fastify.db.posts.findMany()
+            resolve: async () => await fastify.db.posts.findMany()
           },
 
           memberTypes: {
             type: new GraphQLList(GraphQLMemberType),
-            resolve: () => fastify.db.memberTypes.findMany()
+            resolve: async () => await fastify.db.memberTypes.findMany()
           },
 
           // Get a single entity: 2.2
@@ -152,7 +177,26 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
           // Get users with dependencies: 2.3
           usersWithDependencies: {
             type: new GraphQLList(GraphQLUserWithDependencies),
-            resolve: () => fastify.db.users.findMany()
+            resolve: async () => await fastify.db.users.findMany()
+          },
+
+          // Get a single user with dependencies: 2.4
+          userWithDependencies: {
+            type: GraphQLUserWithDependencies,
+            args: {
+              id: { type: GraphQLID }
+            },
+            resolve: async (parent, args) => {
+              const id = args.id;
+
+              const user = await fastify.db.users.findOne({ key: 'id', equals: id });
+        
+              if (!user) {
+                throw fastify.httpErrors.notFound('User was not found...');
+              }
+        
+              return user;
+            }
           },
         }
       });
