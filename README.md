@@ -36,6 +36,9 @@ npm run test
 
 ## How to check the work of application:
 
+> To make checking process easier, there is a small pack of mock data, that is uploaded to database before your first query:  
+https://github.com/dumbus/nodejs-graphql/blob/788acb0eaf34aa37f0206b3239f6bd197e85d0e5/src/routes/graphql/index.ts#L30
+
 To check this task you will need the Postman (or similar program)  
 - choose POST method for every request  
 - the endpoint for each request is **/graphql**  
