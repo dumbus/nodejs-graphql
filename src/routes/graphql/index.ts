@@ -2,11 +2,12 @@ import { FastifyPluginAsyncJsonSchemaToTs } from '@fastify/type-provider-json-sc
 import { GraphQLUser, GraphQLProfile, GraphQLPost, GraphQLMemberType } from './types';
 import { graphqlBodySchema } from './schema';
 
+import { FastifyInstance } from 'fastify';
 import { GraphQLObjectType, GraphQLList, GraphQLSchema, graphql, GraphQLID } from 'graphql';
 
 let i = 0;
 
-const fillDatabaseWithMockData = async (fastify: any) => {
+const fillDatabaseWithMockData = async (fastify: FastifyInstance) => {
   const mockUser = await fastify.db.users.create({
     firstName: `firstName ${i}`,
     lastName: `lastName ${i}`,
