@@ -3,7 +3,16 @@ import { TUser, TProfile, TPost, TMemberType } from './types';
 import { graphqlBodySchema } from './schema';
 
 import { FastifyInstance } from 'fastify';
-import { GraphQLObjectType, GraphQLList, GraphQLSchema, graphql, GraphQLID } from 'graphql';
+import {
+  GraphQLObjectType,
+  GraphQLNonNull,
+  GraphQLList,
+  GraphQLSchema,
+  GraphQLString,
+  GraphQLInt,
+  GraphQLID,
+  graphql,
+} from 'graphql';
 
 let isMockDataCreated = false;
 
@@ -175,8 +184,112 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         }
       });
 
+      const RootMutation = new GraphQLObjectType({
+        name: 'RootMutation',
+        fields: {
+          // Create entities
+          createUser: {
+            type: TUser,
+            args: {
+              firstName: { type: new GraphQLNonNull(GraphQLString) },
+              lastName: { type: new GraphQLNonNull(GraphQLString) },
+              email: { type: new GraphQLNonNull(GraphQLString) }
+            },
+            resolve: async (_, args) => {
+              const { firstName, lastName, email } = args;
+
+              const createdUser = await fastify.db.users.create({
+                firstName,
+                lastName,
+                email
+              });
+
+              return createdUser;
+            }
+          },
+
+          createProfile: {
+            type: TProfile,
+            args: {
+              userId: { type: new GraphQLNonNull(GraphQLID) },
+              memberTypeId: { type: new GraphQLNonNull(GraphQLString) },
+              avatar: { type: new GraphQLNonNull(GraphQLString) },
+              sex: { type: new GraphQLNonNull(GraphQLString) },
+              birthday: { type: new GraphQLNonNull(GraphQLInt) },
+              country: { type: new GraphQLNonNull(GraphQLString) },
+              street: { type: new GraphQLNonNull(GraphQLString) },
+              city: { type: new GraphQLNonNull(GraphQLString) }
+            },
+            resolve: async (_, args) => {
+              const {
+                userId,
+                memberTypeId,
+                avatar,
+                sex,
+                birthday,
+                country,
+                street,
+                city
+              } = args;
+
+              const memberType = await fastify.db.memberTypes.findOne({ key: 'id', equals: memberTypeId });
+        
+              if (!memberType) {
+                throw fastify.httpErrors.badRequest('Member type was not found...');
+              }
+        
+              const isUserHasProfile = await fastify.db.profiles.findOne({ key: 'userId', equals: userId });
+        
+              if (isUserHasProfile) {
+                throw fastify.httpErrors.badRequest('You have a profile...');
+              }
+        
+              const profile = await fastify.db.profiles.create({
+                userId,
+                memberTypeId,
+                avatar,
+                sex,
+                birthday,
+                country,
+                street,
+                city
+              });
+        
+              return profile;
+            }
+          },
+
+          createPost: {
+            type: TPost,
+            args: {
+              userId: { type: new GraphQLNonNull(GraphQLID) },
+              title: { type: new GraphQLNonNull(GraphQLString) },
+              content: { type: new GraphQLNonNull(GraphQLString) }
+            },
+            resolve: async (_, args) => {
+              const { userId, title, content } = args;
+
+              const postAuthor = await fastify.db.users.findOne({ key: 'id', equals: userId });
+        
+              if (!postAuthor) {
+                throw fastify.httpErrors.badRequest('Author of post was not found...');
+              }
+
+              const createdPost = await fastify.db.posts.create({
+                userId,
+                title,
+                content
+              });
+
+              return createdPost;
+            }
+          },
+        }
+      });
+
       const schema = new GraphQLSchema({
-        query: RootQuery
+        query: RootQuery,
+        mutation: RootMutation
       });
 
       const result = await graphql({
