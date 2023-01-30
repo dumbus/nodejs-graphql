@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { GraphQLObjectType, GraphQLList, GraphQLID } from 'graphql';
+import { GraphQLObjectType, GraphQLList, GraphQLID, GraphQLString, GraphQLNonNull } from 'graphql';
 
 import { TUser, TProfile, TPost, TMemberType } from '../types/defaultTypes';
 
@@ -39,7 +39,7 @@ const getRootQuery = async (fastify: FastifyInstance) => {
       user: {
         type: TUser,
         args: {
-          id: { type: GraphQLID }
+          id: { type: new GraphQLNonNull(GraphQLID) }
         },
         resolve: async (_, args) => {
           const id = args.id;
@@ -55,7 +55,7 @@ const getRootQuery = async (fastify: FastifyInstance) => {
       profile: {
         type: TProfile,
         args: {
-          id: { type: GraphQLID }
+          id: { type: new GraphQLNonNull(GraphQLID) }
         },
         resolve: async (_, args) => {
           const id = args.id;
@@ -71,7 +71,7 @@ const getRootQuery = async (fastify: FastifyInstance) => {
       post: {
         type: TPost,
         args: {
-          id: { type: GraphQLID }
+          id: { type: new GraphQLNonNull(GraphQLID) }
         },
         resolve: async (_, args) => {
           const id = args.id;
@@ -87,7 +87,7 @@ const getRootQuery = async (fastify: FastifyInstance) => {
       memberType: {
         type: TMemberType,
         args: {
-          id: { type: GraphQLID }
+          id: { type: new GraphQLNonNull(GraphQLString) }
         },
         resolve: async (_, args) => {
           const id = args.id;
