@@ -1,8 +1,9 @@
-
 # NodeJS-GraphQL
 
-Assignment: https://github.com/AlreadyBored/nodejs-assignments/blob/main/assignments/graphql-service/assignment.md  
-Scoring: https://github.com/AlreadyBored/nodejs-assignments/blob/main/assignments/graphql-service/score.md
+Simple API made with GraphQL and NodeJS.
+
+[Assignment](https://github.com/AlreadyBored/nodejs-assignments/blob/main/assignments/graphql-service/assignment.md )  
+[Scoring](https://github.com/AlreadyBored/nodejs-assignments/blob/main/assignments/graphql-service/score.md)
 
 ## How to download and install application:  
 
@@ -14,11 +15,7 @@ git clone https://github.com/dumbus/nodejs-graphql.git
 ```
 cd nodejs-graphql  
 ```
-### 3. Change repository branch:  
-```
-git checkout nodejs-graphql  
-```
-### 4. Install dependencies:  
+### 3. Install dependencies:  
 ```
 npm install  
 ```
